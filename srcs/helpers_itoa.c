@@ -68,7 +68,6 @@ int	ft_isalnum(int c)
 	return (0);
 }
 
-/* Keep ft_isaalpha/ft_isnum only if used; provide sane implementations */
 int	ft_isaalpha(char *s)
 {
 	int	i;

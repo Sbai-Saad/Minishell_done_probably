@@ -12,50 +12,6 @@
 
 #include "../includes/minishell.h"
 
-int	compute_last_status(int status, int last_status,
-							pid_t pid, int last_pid)
-{
-	if (pid == last_pid)
-	{
-		if (WIFEXITED(status))
-			return (WEXITSTATUS(status));
-		else if (WIFSIGNALED(status))
-			return (128 + WTERMSIG(status));
-	}
-	return (last_status);
-}
-
-int	wait_loop(int last_pid, int *any_sigint, int *any_sigquit)
-{
-	int		status;
-	int		last_status;
-	pid_t	pid;
-
-	last_status = 0;
-	pid = 1;
-	while (pid > 0)
-	{
-		pid = wait(&status);
-		if (pid <= 0)
-			break ;
-		set_signal_flags(status, any_sigint, any_sigquit);
-		last_status = compute_last_status(status, last_status, pid, last_pid);
-	}
-	return (last_status);
-}
-
-int	wait_all_pipes(int last_pid, int *any_sigint, int *any_sigquit)
-{
-	int	last_status;
-
-	if (any_sigint)
-		*any_sigint = 0;
-	if (any_sigquit)
-		*any_sigquit = 0;
-	last_status = wait_loop(last_pid, any_sigint, any_sigquit);
-	return (last_status);
-}
-
 int	execute_commands(t_shell *shell)
 {
 	t_cmd	*cmd;
@@ -76,16 +32,13 @@ int	execute_commands(t_shell *shell)
 		return (execute_pipeline(shell, cmd));
 }
 
-int	execute_single_command(t_shell *shell, t_cmd *cmd)
+static int	start_single_child(t_shell *shell, t_cmd *cmd,
+		struct termios *saved_attr, pid_t *out_pid)
 {
-	pid_t			pid;
-	int				status;
-	struct termios	attr;
+	pid_t	pid;
 
-	if (cmd->args && is_builtin(cmd->args[0]))
-		return (run_builtin_in_parent(shell, cmd));
 	ignore_signals();
-	tcgetattr(STDOUT_FILENO, &attr);
+	tcgetattr(STDOUT_FILENO, saved_attr);
 	pid = fork();
 	if (handle_fork_error(pid))
 	{
@@ -94,9 +47,37 @@ int	execute_single_command(t_shell *shell, t_cmd *cmd)
 	}
 	if (pid == 0)
 		execute_child_process(shell, cmd);
-	waitpid(pid, &status, 0);
-	tcsetattr(STDOUT_FILENO, 0, &attr);
+	*out_pid = pid;
+	return (0);
+}
+
+static int	wait_and_finalize_single(t_shell *shell, pid_t pid,
+		struct termios *saved_attr)
+{
+	int	status;
+
+	while (waitpid(pid, &status, 0) < 0)
+	{
+		if (errno == EINTR)
+			continue ;
+		ft_perror("waitpid");
+		status = 1 << 8;
+		break ;
+	}
+	tcsetattr(STDOUT_FILENO, 0, saved_attr);
 	setup_signals();
 	parent_post_wait_status(shell, status);
 	return (shell->exit_status);
+}
+
+int	execute_single_command(t_shell *shell, t_cmd *cmd)
+{
+	pid_t			pid;
+	struct termios	attr;
+
+	if (cmd->args && is_builtin(cmd->args[0]))
+		return (run_builtin_in_parent(shell, cmd));
+	if (start_single_child(shell, cmd, &attr, &pid) != 0)
+		return (1);
+	return (wait_and_finalize_single(shell, pid, &attr));
 }

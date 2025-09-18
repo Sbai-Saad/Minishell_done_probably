@@ -29,9 +29,10 @@ int	run_builtin_in_parent(t_shell *shell, t_cmd *cmd)
 		return (shell->exit_status);
 	}
 	ret = execute_builtin(shell, cmd);
+	shell->exit_status = ret;
 	restore_redirections(shell->stdin_copy, shell->stdout_copy);
 	setup_signals();
-	return (ret);
+	return (shell->exit_status);
 }
 
 void	parent_post_wait_status(t_shell *shell, int status)

@@ -80,7 +80,7 @@ int	parse_input(t_shell *shell, char *input)
 		return (0);
 	if (!is_valid_syntax(shell->tokens))
 	{
-		shell->exit_status = 2;
+		shell->exit_status = 258;
 		return (0);
 	}
 	shell->cmds = parse_commands(shell->tokens, shell);

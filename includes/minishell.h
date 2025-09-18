@@ -30,7 +30,9 @@
 # define PROMPT "minishell> "
 # define ERROR 1
 # define SUCCESS 0
-/* BUFFER_SIZE removed (get_next_line deleted) */
+# ifndef ECHOCTL
+#  define ECHOCTL 0
+# endif
 
 typedef struct s_env			t_env;
 typedef struct s_token			t_token;
@@ -85,7 +87,7 @@ struct s_cmd
 	char		**args;
 	char		*infile;
 	int			heredoc_fd;
-	t_heredoc	*heredocs; /* list of heredoc descriptors to process in order */
+	t_heredoc	*heredocs;
 	t_inredir	*in_redirs;
 	t_outredir	*out_redirs;
 	t_cmd		*next;
@@ -302,6 +304,7 @@ void		reset_signals(void);
 void		handle_sigint(int sig);
 void		handle_sigquit(int sig);
 void		ignore_signals(void);
+void		set_echoctl(int enable);
 void		parent_post_wait_status(t_shell *shell, int status);
 int			run_builtin_in_parent(t_shell *shell, t_cmd *cmd);
 int			parent_dup_stdio(t_shell *shell);

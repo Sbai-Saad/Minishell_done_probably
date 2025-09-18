@@ -6,8 +6,8 @@ CFLAGS = -Wall -Wextra -Werror
 READLINE_CFLAGS := $(shell pkg-config --cflags readline 2>/dev/null)
 READLINE_LDLIBS := $(shell pkg-config --libs readline 2>/dev/null)
 
-INCLUDES = -I includes $(READLINE_CFLAGS)
-LDLIBS = $(if $(READLINE_LDLIBS),$(READLINE_LDLIBS),-lreadline -lncurses)
+INCLUDES = -I includes $(READLINE_CFLAGS) $(if $(READLINE_INC),-I $(READLINE_INC))
+LDLIBS = $(if $(READLINE_LDLIBS),$(READLINE_LDLIBS),-lreadline) $(if $(READLINE_LIB),-L $(READLINE_LIB))
 
 SRCS =	srcs/main.c \
 		srcs/main_utils.c \
@@ -31,6 +31,7 @@ SRCS =	srcs/main.c \
 		srcs/execute_utils.c \
 		srcs/execute_utils2.c \
 		srcs/execute_utils3.c \
+		srcs/execute_utils4.c \
 		srcs/execute_pipeline.c \
 		srcs/execute_pipeline2.c \
 		srcs/execute_pipeline3.c \
@@ -41,6 +42,7 @@ SRCS =	srcs/main.c \
 		srcs/heredoc_expand2.c \
 		srcs/heredoc_utils.c \
 		srcs/heredoc_utils2.c \
+		srcs/heredoc_utils3.c \
 		srcs/pipes.c \
 		srcs/builtins.c \
 		srcs/echo.c \
@@ -63,8 +65,10 @@ SRCS =	srcs/main.c \
 		srcs/helpers_itoa.c \
 		srcs/helpers_string.c \
 
-
 OBJS = $(SRCS:.c=.o)
+
+READLINE_LIB = $(shell brew --prefix readline)/lib
+READLINE_INC = $(shell brew --prefix readline)/include
 
 all: $(NAME)
 

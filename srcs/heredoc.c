@@ -63,7 +63,7 @@ static int	build_all_heredocs(t_cmd *cmd, t_shell *shell, t_heredoc *last)
 		rfd = build_heredoc_fd(h->eof, h->quoted, shell);
 		if (rfd == -2)
 		{
-			shell->exit_status = 130;
+			shell->exit_status = 1;
 			g_signal_received = 1;
 			return (-1);
 		}
@@ -100,16 +100,24 @@ void	handle_heredocs(t_cmd *cmds, t_shell *shell)
 {
 	t_cmd			*current;
 
+	ignore_signals();
 	current = cmds;
 	while (current)
 	{
 		if (g_signal_received)
+		{
+			setup_signals();
 			return ;
+		}
 		if (current->heredocs)
 		{
 			if (process_all_heredocs(current, shell) != 0)
+			{
+				setup_signals();
 				return ;
+			}
 		}
 		current = current->next;
 	}
+	setup_signals();
 }

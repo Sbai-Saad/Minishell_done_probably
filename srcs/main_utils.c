@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main_utils.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: sasbai <sasbai@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/08/17 12:23:06 by marvin            #+#    #+#             */
-/*   Updated: 2025/08/17 12:23:06 by marvin           ###   ########.fr       */
+/*   Created: 2025/08/21 06:00:24 by sasbai            #+#    #+#             */
+/*   Updated: 2025/08/21 06:00:24 by sasbai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,4 +36,5 @@ void	init_shell(t_shell *shell, char **envp)
 	shell->stdin_copy = -1;
 	shell->stdout_copy = -1;
 	setup_signals();
+	set_echoctl(1);
 }
